@@ -1,5 +1,5 @@
 [general]
-  loglevel = "warning"
+  loglevel = "debug"
   hosts = [{{{hosts}}}]
   host_types = [{{{host_types}}}]
   default_server_domain = {{{default_server_domain}}}
@@ -127,7 +127,7 @@
 [[listen.c2s]]
   port = {{{c2s_port}}}
   access = "c2s"
-  shaper = "normal"
+  shaper = "c2s_shaper"
   max_stanza_size = 65536
   {{#tls_config}}
   {{{tls_config}}}
@@ -251,6 +251,11 @@
 
 [modules.mod_presence]
 
+{{#mod_presence_notify}}
+[modules.mod_presence_notify]
+{{{mod_presence_notify}}}
+{{/mod_presence_notify}}
+
 {{#mod_roster}}
 [modules.mod_roster]
 {{{mod_roster}}}
@@ -281,6 +286,9 @@
 
 [shaper.mam_global_shaper]
   max_rate = 1000
+
+[shaper.c2s_shaper]
+  max_rate = 5000
 
 [acl]
   local = [{}]

@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  mongooseim:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ERLANG_VERSION: "28.0"
+        DEBIAN_VERSION: "bookworm"
+    container_name: mongooseim-presence-notify
+    hostname: mongooseim
+    ports:
+      - "5222:5222"   # XMPP C2S
+      - "5280:5280"   # HTTP/BOSH/WebSocket
+      - "5269:5269"   # XMPP S2S
+      - "9100:9100"   # Metrics (if enabled)
+    environment:
+      - WORLD_SERVER_USERNAME=world_server
+      - MONGOOSEIM_CONFIG_FORMAT=toml
+      - MONGOOSEIM_CONFIG_PATH=/opt/mongooseim/etc/mongooseim.toml
+    volumes:
+      - mongooseim_data:/var/lib/mongooseim
+      - mongooseim_logs:/var/log/mongooseim
+      - ./priv/examples/mod_presence_notify.toml:/opt/mongooseim/examples/mod_presence_notify.toml:ro
+    networks:
+      - mongooseim_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5280/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Optional: PostgreSQL database for production use
+  postgres:
+    image: postgres:15-alpine
+    container_name: mongooseim-postgres
+    environment:
+      - POSTGRES_DB=mongooseim
+      - POSTGRES_USER=mongooseim
+      - POSTGRES_PASSWORD=mongooseim_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mongooseim_network
+    restart: unless-stopped
+    profiles:
+      - database
+
+  # Optional: Adminer for database management
+  adminer:
+    image: adminer:latest
+    container_name: mongooseim-adminer
+    ports:
+      - "8080:8080"
+    networks:
+      - mongooseim_network
+    restart: unless-stopped
+    profiles:
+      - database
+      - admin
+
+volumes:
+  mongooseim_data:
+    driver: local
+  mongooseim_logs:
+    driver: local
+  postgres_data:
+    driver: local
+
+networks:
+  mongooseim_network:
+    driver: bridge

@@ -1,0 +1,131 @@
+# MongooseIM Configuration with mod_presence_notify
+# This is a sample configuration for Docker deployment
+
+[general]
+  loglevel = "debug"
+  hosts = ["localhost"]
+  host_types = []
+  default_server_domain = "localhost"
+  registration_timeout = "infinity"
+  language = "en"
+
+# XMPP Client-to-Server listener
+[[listen.c2s]]
+  port = 5222
+  access = "c2s"
+  shaper = "c2s_shaper"
+  max_stanza_size = 65536
+
+# HTTP listeners for BOSH, WebSocket, and Admin API
+[[listen.http]]
+  port = 5280
+  transport.num_acceptors = 10
+  transport.max_connections = 1024
+
+  [[listen.http.handlers.mod_bosh]]
+    host = "_"
+    path = "/bosh"
+
+  [[listen.http.handlers.mod_websockets]]
+    host = "_"
+    path = "/ws"
+
+# Admin API listener (separate port for better security)
+[[listen.http]]
+  port = 8080
+  transport.num_acceptors = 10
+  transport.max_connections = 1024
+
+  [[listen.http.handlers.mongoose_admin_api]]
+    host = "_"
+    path = "/api"
+
+# Authentication
+[auth]
+  methods = ["internal"]
+
+[auth.internal]
+
+# Internal database (Mnesia for development, use RDBMS for production)
+[internal_databases.mnesia]
+
+# Core modules
+[modules.mod_adhoc]
+
+[modules.mod_disco]
+  users_can_see_hidden_services = false
+
+[modules.mod_stream_management]
+  ack = false
+
+[modules.mod_register]
+  access = "register"
+  ip_access = [
+    {address = "0.0.0.0/0", policy = "allow"}
+  ]
+
+[modules.mod_presence]
+
+[modules.mod_roster]
+  backend = "mnesia"
+
+[modules.mod_vcard]
+  host = "vjud.@HOST@"
+
+[modules.mod_bosh]
+
+[modules.mod_carboncopy]
+
+# Our custom presence notification module
+[modules.mod_presence_notify]
+  # The module will use WORLD_SERVER_USERNAME environment variable
+  # or you can override it here:
+  # server_user = "custom_server"
+
+# Traffic shapers
+[shaper.normal]
+  max_rate = 1000
+
+[shaper.fast]
+  max_rate = 50_000
+
+[shaper.c2s_shaper]
+  max_rate = 5000
+
+# Access Control Lists
+[acl]
+  local = [{}]
+  admin = [
+    {user = "admin"},
+    {user = "world_server"}
+  ]
+
+# Access rules
+[access]
+  max_user_sessions = [
+    {acl = "admin", value = 256},
+    {acl = "all", value = 10}
+  ]
+
+  max_user_offline_messages = [
+    {acl = "admin", value = 5000},
+    {acl = "all", value = 100}
+  ]
+
+  local = [
+    {acl = "local", value = "allow"}
+  ]
+
+  c2s = [
+    {acl = "blocked", value = "deny"},
+    {acl = "all", value = "allow"}
+  ]
+
+  c2s_shaper = [
+    {acl = "admin", value = "none"},
+    {acl = "all", value = "normal"}
+  ]
+
+  register = [
+    {acl = "all", value = "allow"}
+  ]

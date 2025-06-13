@@ -1,0 +1,7 @@
+[[listen.c2s]]
+  port = 5222
+  access = "c2s"
+  shaper = "c2s_shaper"
+  max_stanza_size = 65536
+
+[modules.mod_presence_notify]
