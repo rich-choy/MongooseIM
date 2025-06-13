@@ -1,0 +1,27 @@
+# MongooseIM mod_presence_notify Configuration Examples
+# Choose ONE of the following configurations:
+
+# ✅ OPTION 1: ENABLE WITH ENVIRONMENT VARIABLE (RECOMMENDED)
+# Uses WORLD_SERVER_USERNAME environment variable as server_user
+# Add this to your mongooseim.toml:
+[modules.mod_presence_notify]
+
+# ✅ OPTION 2: ENABLE WITH EXPLICIT SERVER USER
+# Override the environment variable with a specific value
+# Add this to your mongooseim.toml:
+# [modules.mod_presence_notify]
+#   server_user = "world"
+
+# ✅ OPTION 3: ENABLE FOR DISTRIBUTED ENVIRONMENT
+# Specify just the local part, domain will be auto-detected
+# Add this to your mongooseim.toml:
+# [modules.mod_presence_notify]
+#   server_user = "server"
+
+# ❌ TO DISABLE THE MODULE:
+# Simply comment out or remove the [modules.mod_presence_notify] section
+
+# Configuration precedence:
+# 1. Explicit server_user in TOML file (highest priority)
+# 2. WORLD_SERVER_USERNAME environment variable
+# 3. Default value "server" (lowest priority)
